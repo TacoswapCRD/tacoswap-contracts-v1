@@ -1,6 +1,6 @@
 const { expectRevert, time } = require('@openzeppelin/test-helpers');
 const ethers = require('ethers');
-const SushiToken = artifacts.require('SushiToken');
+const TacoToken = artifacts.require('TacoToken');
 const MasterChef = artifacts.require('MasterChef');
 const Timelock = artifacts.require('Timelock');
 const GovernorAlpha = artifacts.require('GovernorAlpha');
@@ -13,23 +13,23 @@ function encodeParameters(types, values) {
 
 contract('Governor', ([alice, minter, dev]) => {
     it('should work', async () => {
-        this.sushi = await SushiToken.new({ from: alice });
-        await this.sushi.delegate(dev, { from: dev });
-        this.chef = await MasterChef.new(this.sushi.address, dev, '100', '0', '0', { from: alice });
-        await this.sushi.transferOwnership(this.chef.address, { from: alice });
+        this.taco = await TacoToken.new({ from: alice });
+        await this.taco.delegate(dev, { from: dev });
+        this.chef = await MasterChef.new(this.taco.address, dev, '100', '0', '0', { from: alice });
+        await this.taco.transferOwnership(this.chef.address, { from: alice });
         this.lp = await MockERC20.new('LPToken', 'LP', '10000000000', { from: minter });
         this.lp2 = await MockERC20.new('LPToken2', 'LP2', '10000000000', { from: minter });
         await this.chef.add('100', this.lp.address, true, { from: alice });
         await this.lp.approve(this.chef.address, '1000', { from: minter });
         await this.chef.deposit(0, '100', { from: minter });
-        // Perform another deposit to make sure some SUSHIs are minted in that 1 block.
+        // Perform another deposit to make sure some TACOs are minted in that 1 block.
         await this.chef.deposit(0, '100', { from: minter });
-        assert.equal((await this.sushi.totalSupply()).valueOf(), '110');
-        assert.equal((await this.sushi.balanceOf(minter)).valueOf(), '100');
-        assert.equal((await this.sushi.balanceOf(dev)).valueOf(), '10');
+        assert.equal((await this.taco.totalSupply()).valueOf(), '110');
+        assert.equal((await this.taco.balanceOf(minter)).valueOf(), '100');
+        assert.equal((await this.taco.balanceOf(dev)).valueOf(), '10');
         // Transfer ownership to timelock contract
         this.timelock = await Timelock.new(alice, time.duration.days(2), { from: alice });
-        this.gov = await GovernorAlpha.new(this.timelock.address, this.sushi.address, alice, { from: alice });
+        this.gov = await GovernorAlpha.new(this.timelock.address, this.taco.address, alice, { from: alice });
         await this.timelock.setPendingAdmin(this.gov.address, { from: alice });
         await this.gov.__acceptAdmin({ from: alice });
         await this.chef.transferOwnership(this.timelock.address, { from: alice });
