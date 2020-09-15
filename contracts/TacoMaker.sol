@@ -3,21 +3,21 @@ pragma solidity 0.6.12;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./uniswapv2/interfaces/IUniswapV2ERC20.sol";
-import "./uniswapv2/interfaces/IUniswapV2Pair.sol";
-import "./uniswapv2/interfaces/IUniswapV2Factory.sol";
+import "./sushiswap/interfaces/ISushiSwapERC20.sol";
+import "./sushiswap/interfaces/ISushiSwapPair.sol";
+import "./sushiswap/interfaces/ISushiSwapFactory.sol";
 
 
 contract TacoMaker {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IUniswapV2Factory public factory;
+    ISushiSwapFactory public factory;
     address public bar;
     address public taco;
     address public weth;
 
-    constructor(IUniswapV2Factory _factory, address _bar, address _taco, address _weth) public {
+    constructor(ISushiSwapFactory _factory, address _bar, address _taco, address _weth) public {
         factory = _factory;
         taco = _taco;
         bar = _bar;
@@ -27,7 +27,7 @@ contract TacoMaker {
     function convert(address token0, address token1) public {
         // At least we try to make front-running harder to do.
         require(msg.sender == tx.origin, "do not convert from contract");
-        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(token0, token1));
+        ISushiSwapPair pair = ISushiSwapPair(factory.getPair(token0, token1));
         pair.transfer(address(pair), pair.balanceOf(address(this)));
         pair.burn(address(this));
         uint256 wethAmount = _toWETH(token0) + _toWETH(token1);
@@ -45,7 +45,7 @@ contract TacoMaker {
             _safeTransfer(token, factory.getPair(weth, taco), amount);
             return amount;
         }
-        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(token, weth));
+        ISushiSwapPair pair = ISushiSwapPair(factory.getPair(token, weth));
         if (address(pair) == address(0)) {
             return 0;
         }
@@ -64,7 +64,7 @@ contract TacoMaker {
     }
 
     function _toTACO(uint256 amountIn) internal {
-        IUniswapV2Pair pair = IUniswapV2Pair(factory.getPair(weth, taco));
+        ISushiSwapPair pair = ISushiSwapPair(factory.getPair(weth, taco));
         (uint reserve0, uint reserve1,) = pair.getReserves();
         address token0 = pair.token0();
         (uint reserveIn, uint reserveOut) = token0 == weth ? (reserve0, reserve1) : (reserve1, reserve0);

@@ -1,22 +1,22 @@
 const TacoToken = artifacts.require('TacoToken');
 const TacoMaker = artifacts.require('TacoMaker');
 const MockERC20 = artifacts.require('MockERC20');
-const UniswapV2Pair = artifacts.require('UniswapV2Pair');
-const UniswapV2Factory = artifacts.require('UniswapV2Factory');
+const SushiSwapPair = artifacts.require('SushiSwapPair');
+const SushiSwapFactory = artifacts.require('SushiSwapFactory');
 
 contract('TacoMaker', ([alice, bar, minter]) => {
     beforeEach(async () => {
-        this.factory = await UniswapV2Factory.new(alice, { from: alice });
+        this.factory = await SushiSwapFactory.new(alice, { from: alice });
         this.taco = await TacoToken.new({ from: alice });
         await this.taco.mint(minter, '100000000', { from: alice });
         this.weth = await MockERC20.new('WETH', 'WETH', '100000000', { from: minter });
         this.token1 = await MockERC20.new('TOKEN1', 'TOKEN', '100000000', { from: minter });
         this.token2 = await MockERC20.new('TOKEN2', 'TOKEN2', '100000000', { from: minter });
         this.maker = await TacoMaker.new(this.factory.address, bar, this.taco.address, this.weth.address);
-        this.tacoWETH = await UniswapV2Pair.at((await this.factory.createPair(this.weth.address, this.taco.address)).logs[0].args.pair);
-        this.wethToken1 = await UniswapV2Pair.at((await this.factory.createPair(this.weth.address, this.token1.address)).logs[0].args.pair);
-        this.wethToken2 = await UniswapV2Pair.at((await this.factory.createPair(this.weth.address, this.token2.address)).logs[0].args.pair);
-        this.token1Token2 = await UniswapV2Pair.at((await this.factory.createPair(this.token1.address, this.token2.address)).logs[0].args.pair);
+        this.tacoWETH = await SushiSwapPair.at((await this.factory.createPair(this.weth.address, this.taco.address)).logs[0].args.pair);
+        this.wethToken1 = await SushiSwapPair.at((await this.factory.createPair(this.weth.address, this.token1.address)).logs[0].args.pair);
+        this.wethToken2 = await SushiSwapPair.at((await this.factory.createPair(this.weth.address, this.token2.address)).logs[0].args.pair);
+        this.token1Token2 = await SushiSwapPair.at((await this.factory.createPair(this.token1.address, this.token2.address)).logs[0].args.pair);
     });
 
     it('should make TACOs successfully', async () => {
