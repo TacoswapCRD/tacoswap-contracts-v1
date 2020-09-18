@@ -71,11 +71,13 @@ contract MasterChef is Ownable {
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
     IMigratorChef public migrator;
 
+    // Track all added pools to prevent adding the same pool more then once.
+    mapping(address => bool) public lpTokenExistsInPool;
     // Info of each pool.
     PoolInfo[] public poolInfo;
     // Info of each user that stakes LP tokens.
     mapping (uint256 => mapping (address => UserInfo)) public userInfo;
-    // Total allocation poitns. Must be the sum of all allocation points in all pools.
+    // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
     // The block number when TACO mining starts.
     uint256 public startBlock;
@@ -103,8 +105,8 @@ contract MasterChef is Ownable {
     }
 
     // Add a new lp to the pool. Can only be called by the owner.
-    // XXX DO NOT add the same LP token more than once. Rewards will be messed up if you do.
     function add(uint256 _allocPoint, IERC20 _lpToken, bool _withUpdate) public onlyOwner {
+        require(!lpTokenExistsInPool[address(_lpToken)], "MasterChef: LP Token Address already exists in pool");
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -116,6 +118,13 @@ contract MasterChef is Ownable {
             lastRewardBlock: lastRewardBlock,
             accTacoPerShare: 0
         }));
+
+        lpTokenExistsInPool[address(_lpToken)] = true;
+    }
+
+    // Add a pool manually for pools that already exists, but were not auto added to the map by "add()".
+    function updateLpTokenExists(address _lpTokenAddr, bool _isExists) external onlyOwner {
+        lpTokenExistsInPool[_lpTokenAddr] = _isExists;
     }
 
     // Update the given pool's TACO allocation point. Can only be called by the owner.
@@ -132,7 +141,9 @@ contract MasterChef is Ownable {
         migrator = _migrator;
     }
 
-    // Migrate lp token to another lp contract. Can be called by anyone. We trust that migrator contract is good.
+    // Migrate lp token to another lp contract.
+    // Can be called by anyone.
+    // We trust that migrator contract is good.
     function migrate(uint256 _pid) public {
         require(address(migrator) != address(0), "migrate: no migrator");
         PoolInfo storage pool = poolInfo[_pid];
@@ -140,8 +151,10 @@ contract MasterChef is Ownable {
         uint256 bal = lpToken.balanceOf(address(this));
         lpToken.safeApprove(address(migrator), bal);
         IERC20 newLpToken = migrator.migrate(lpToken);
+        require(!lpTokenExistsInPool[address(newLpToken)],"MasterChef: New LP Token Address already exists in pool");
         require(bal == newLpToken.balanceOf(address(this)), "migrate: bad");
         pool.lpToken = newLpToken;
+        lpTokenExistsInPool[address(newLpToken)] = true;
     }
 
     // Return reward multiplier over the given _from to _to block.
@@ -239,10 +252,11 @@ contract MasterChef is Ownable {
     function emergencyWithdraw(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][msg.sender];
-        pool.lpToken.safeTransfer(address(msg.sender), user.amount);
-        emit EmergencyWithdraw(msg.sender, _pid, user.amount);
+        uint256 amount = user.amount;
         user.amount = 0;
         user.rewardDebt = 0;
+        pool.lpToken.safeTransfer(address(msg.sender), amount);
+        emit EmergencyWithdraw(msg.sender, _pid, amount);
     }
 
     // Safe taco transfer function, just in case if rounding error causes pool to not have enough TACOs.
