@@ -2,19 +2,19 @@ const { expectRevert, time } = require('@openzeppelin/test-helpers');
 const TacoToken = artifacts.require('TacoToken');
 const MasterChef = artifacts.require('MasterChef');
 const MockERC20 = artifacts.require('MockERC20');
-const SushiSwapPair = artifacts.require('SushiSwapPair');
-const SushiSwapFactory = artifacts.require('SushiSwapFactory');
+const TacoSwapPair = artifacts.require('TacoSwapPair');
+const TacoSwapFactory = artifacts.require('TacoSwapFactory');
 const Migrator = artifacts.require('Migrator');
 
 contract('Migrator', ([alice, bob, dev, minter]) => {
     beforeEach(async () => {
-        this.factory1 = await SushiSwapFactory.new(alice, { from: alice });
-        this.factory2 = await SushiSwapFactory.new(alice, { from: alice });
+        this.factory1 = await TacoSwapFactory.new(alice, { from: alice });
+        this.factory2 = await TacoSwapFactory.new(alice, { from: alice });
         this.taco = await TacoToken.new({ from: alice });
         this.weth = await MockERC20.new('WETH', 'WETH', '100000000', { from: minter });
         this.token = await MockERC20.new('TOKEN', 'TOKEN', '100000000', { from: minter });
-        this.lp1 = await SushiSwapPair.at((await this.factory1.createPair(this.weth.address, this.token.address)).logs[0].args.pair);
-        this.lp2 = await SushiSwapPair.at((await this.factory2.createPair(this.weth.address, this.token.address)).logs[0].args.pair);
+        this.lp1 = await TacoSwapPair.at((await this.factory1.createPair(this.weth.address, this.token.address)).logs[0].args.pair);
+        this.lp2 = await TacoSwapPair.at((await this.factory2.createPair(this.weth.address, this.token.address)).logs[0].args.pair);
         this.chef = await MasterChef.new(this.taco.address, dev, '1000', '0', '100000', { from: alice });
         this.migrator = await Migrator.new(this.chef.address, this.factory1.address, this.factory2.address, '0');
         await this.taco.transferOwnership(this.chef.address, { from: alice });
@@ -50,7 +50,7 @@ contract('Migrator', ([alice, bob, dev, minter]) => {
     it('should allow first minting from public only after migrator is gone', async () => {
         await this.factory2.setMigrator(this.migrator.address, { from: alice });
         this.tokenx = await MockERC20.new('TOKENX', 'TOKENX', '100000000', { from: minter });
-        this.lpx = await SushiSwapPair.at((await this.factory2.createPair(this.weth.address, this.tokenx.address)).logs[0].args.pair);
+        this.lpx = await TacoSwapPair.at((await this.factory2.createPair(this.weth.address, this.tokenx.address)).logs[0].args.pair);
         await this.weth.transfer(this.lpx.address, '10000000', { from: minter });
         await this.tokenx.transfer(this.lpx.address, '500000', { from: minter });
         await expectRevert(this.lpx.mint(minter), 'Must not have migrator');

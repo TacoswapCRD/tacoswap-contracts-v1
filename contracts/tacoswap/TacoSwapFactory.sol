@@ -1,9 +1,9 @@
 pragma solidity =0.6.12;
 
-import './interfaces/ISushiSwapFactory.sol';
-import './SushiSwapPair.sol';
+import './interfaces/ITacoSwapFactory.sol';
+import './TacoSwapPair.sol';
 
-contract SushiSwapFactory is ISushiSwapFactory {
+contract TacoSwapFactory is ITacoSwapFactory {
     address public override feeTo;
     address public override feeToSetter;
     address public override migrator;
@@ -22,20 +22,20 @@ contract SushiSwapFactory is ISushiSwapFactory {
     }
 
     function pairCodeHash() external pure returns (bytes32) {
-        return keccak256(type(SushiSwapPair).creationCode);
+        return keccak256(type(TacoSwapPair).creationCode);
     }
 
     function createPair(address tokenA, address tokenB) external override returns (address pair) {
-        require(tokenA != tokenB, 'SushiSwap: IDENTICAL_ADDRESSES');
+        require(tokenA != tokenB, 'TacoSwap: IDENTICAL_ADDRESSES');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'SushiSwap: ZERO_ADDRESS');
-        require(getPair[token0][token1] == address(0), 'SushiSwap: PAIR_EXISTS'); // single check is sufficient
-        bytes memory bytecode = type(SushiSwapPair).creationCode;
+        require(token0 != address(0), 'TacoSwap: ZERO_ADDRESS');
+        require(getPair[token0][token1] == address(0), 'TacoSwap: PAIR_EXISTS'); // single check is sufficient
+        bytes memory bytecode = type(TacoSwapPair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        SushiSwapPair(pair).initialize(token0, token1);
+        TacoSwapPair(pair).initialize(token0, token1);
         getPair[token0][token1] = pair;
         getPair[token1][token0] = pair; // populate mapping in the reverse direction
         allPairs.push(pair);
@@ -43,17 +43,17 @@ contract SushiSwapFactory is ISushiSwapFactory {
     }
 
     function setFeeTo(address _feeTo) external override {
-        require(msg.sender == feeToSetter, 'SushiSwap: FORBIDDEN');
+        require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
         feeTo = _feeTo;
     }
 
     function setMigrator(address _migrator) external override {
-        require(msg.sender == feeToSetter, 'SushiSwap: FORBIDDEN');
+        require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
         migrator = _migrator;
     }
 
     function setFeeToSetter(address _feeToSetter) external override {
-        require(msg.sender == feeToSetter, 'SushiSwap: FORBIDDEN');
+        require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
         feeToSetter = _feeToSetter;
     }
 

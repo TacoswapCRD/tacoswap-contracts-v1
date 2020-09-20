@@ -2,8 +2,8 @@ pragma solidity =0.6.12;
 
 import './libraries/SafeMath.sol';
 
-contract SushiSwapERC20 {
-    using SafeMathSushiSwap for uint;
+contract TacoSwapERC20 {
+    using SafeMathTacoSwap for uint;
 
     string public constant name = 'TacoSwap LP Token';
     string public constant symbol = 'TLP';
@@ -78,7 +78,7 @@ contract SushiSwapERC20 {
     }
 
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(deadline >= block.timestamp, 'SushiSwap: EXPIRED');
+        require(deadline >= block.timestamp, 'TacoSwap: EXPIRED');
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
@@ -87,7 +87,7 @@ contract SushiSwapERC20 {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'SushiSwap: INVALID_SIGNATURE');
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'TacoSwap: INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
 }

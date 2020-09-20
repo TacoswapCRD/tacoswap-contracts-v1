@@ -4,7 +4,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
-
 contract TacoBar is ERC20("TacoBar", "xTACO"){
     using SafeMath for uint256;
     IERC20 public taco;
