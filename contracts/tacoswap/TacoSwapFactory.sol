@@ -1,4 +1,5 @@
-pragma solidity =0.6.12;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.7.0;
 
 import './interfaces/ITacoSwapFactory.sol';
 import './TacoSwapPair.sol';
@@ -56,5 +57,4 @@ contract TacoSwapFactory is ITacoSwapFactory {
         require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
         feeToSetter = _feeToSetter;
     }
-
 }
