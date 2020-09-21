@@ -10,7 +10,7 @@ import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
 contract TacoSwapRouter02 is ITacoSwapRouter02 {
-    using SafeMathTacoSwap for uint;
+    using SafeMath for uint;
 
     address public immutable override factory;
     address public immutable override WETH;

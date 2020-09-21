@@ -4,7 +4,7 @@ pragma solidity 0.7.0;
 import './libraries/SafeMath.sol';
 
 contract TacoSwapERC20 {
-    using SafeMathTacoSwap for uint;
+    using SafeMath for uint;
 
     string public constant name = 'TacoSwap LP Token';
     string public constant symbol = 'TLP';
