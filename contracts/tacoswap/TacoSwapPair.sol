@@ -32,6 +32,7 @@ contract TacoSwapPair is TacoSwapERC20 {
     uint public price0CumulativeLast;
     uint public price1CumulativeLast;
     uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
+    uint8 public swapFee = 50; // uses 0.5% fee as default
 
     uint private unlocked = 1;
     modifier lock() {
@@ -94,6 +95,7 @@ contract TacoSwapPair is TacoSwapERC20 {
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(uint112 _reserve0, uint112 _reserve1) private returns (bool feeOn) {
         address feeTo = ITacoSwapFactory(factory).feeTo();
+        uint8 protocolFeeDenominator = IUniswapV2Factory(factory).protocolFeeDenominator();
         feeOn = feeTo != address(0);
         uint _kLast = kLast; // gas savings
         if (feeOn) {
@@ -102,7 +104,7 @@ contract TacoSwapPair is TacoSwapERC20 {
                 uint rootKLast = Math.sqrt(_kLast);
                 if (rootK > rootKLast) {
                     uint numerator = totalSupply.mul(rootK.sub(rootKLast));
-                    uint denominator = rootK.mul(5).add(rootKLast);
+                    uint denominator = rootK.mul(protocolFeeDenominator).add(rootKLast);
                     uint liquidity = numerator / denominator;
                     if (liquidity > 0) _mint(feeTo, liquidity);
                 }
@@ -190,9 +192,11 @@ contract TacoSwapPair is TacoSwapERC20 {
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
         require(amount0In > 0 || amount1In > 0, 'TacoSwap: INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-            uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(5)); // 0.5% Fees
-            uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(5)); // 0.5% Fees
-            require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'TacoSwap: K');
+            if (swapFee > 0) {
+                uint balance0Adjusted = balance0.mul(10000).sub(amount0In.mul(swapFee));
+                uint balance1Adjusted = balance1.mul(10000).sub(amount1In.mul(swapFee));
+                require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(10000**2), 'UniswapV2: K');
+            }
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -210,5 +214,12 @@ contract TacoSwapPair is TacoSwapERC20 {
     // force reserves to match balances
     function sync() external lock {
         _update(IERC20TacoSwap(token0).balanceOf(address(this)), IERC20TacoSwap(token1).balanceOf(address(this)), reserve0, reserve1);
+    }
+
+    // called by the factory to set the swapFee
+    function setSwapFee(uint8 _swapFee) external {
+        require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
+        require(_swapFee <= 50, 'UniswapV2: FORBIDDEN_FEE'); // fee percentage check
+        swapFee = _swapFee;
     }
 }

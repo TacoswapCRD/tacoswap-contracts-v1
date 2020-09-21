@@ -41,6 +41,7 @@ interface ITacoSwapPair {
     function price0CumulativeLast() external view returns (uint);
     function price1CumulativeLast() external view returns (uint);
     function kLast() external view returns (uint);
+    function swapFee() external view returns (uint8);
 
     function mint(address to) external returns (uint liquidity);
     function burn(address to) external returns (uint amount0, uint amount1);
@@ -49,4 +50,5 @@ interface ITacoSwapPair {
     function sync() external;
 
     function initialize(address, address) external;
+    function setSwapFee(uint8) external;
 }

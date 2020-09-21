@@ -4,6 +4,7 @@ interface ITacoSwapFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     function feeTo() external view returns (address);
+    function protocolFee() external view returns (uint8);
     function feeToSetter() external view returns (address);
     function migrator() external view returns (address);
 
@@ -15,5 +16,7 @@ interface ITacoSwapFactory {
 
     function setFeeTo(address) external;
     function setFeeToSetter(address) external;
+    function setProtocolFee(uint8 _protocolFee) external;
+    function setSwapFee(address pair, uint8 swapFee) external;
     function setMigrator(address) external;
 }

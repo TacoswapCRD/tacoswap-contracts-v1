@@ -8,6 +8,7 @@ contract TacoSwapFactory is ITacoSwapFactory {
     address public override feeTo;
     address public override feeToSetter;
     address public override migrator;
+    uint8 public protocolFeeDenominator = 4; // uses 0.1% (1/~5 of 0.50%) per trade as default
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
@@ -56,5 +57,16 @@ contract TacoSwapFactory is ITacoSwapFactory {
     function setFeeToSetter(address _feeToSetter) external override {
         require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
         feeToSetter = _feeToSetter;
+    }
+
+    function setProtocolFee(uint8 _protocolFeeDenominator) external {
+        require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
+        require(_protocolFeeDenominator > 0, 'TacoSwap: FORBIDDEN_FEE');
+        protocolFeeDenominator = _protocolFeeDenominator;
+    }
+
+    function setSwapFee(address _pair, uint8 _swapFee) external {
+        require(msg.sender == feeToSetter, 'TacoSwap: FORBIDDEN');
+        TacoSwapPair(_pair).setSwapFee(_swapFee);
     }
 }
