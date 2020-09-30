@@ -31,7 +31,7 @@ contract CRDCrowdsale is Ownable {
   address payable public wallet;
 
   // how many token units a buyer gets per ether
-  uint256 public rate = 900;
+  uint256 public rate = 7142;
 
   // amount of raised money in wei
   uint256 public weiRaised;
@@ -44,11 +44,11 @@ contract CRDCrowdsale is Ownable {
    */
   event TokenPurchase(address indexed purchaser, uint256 value, uint256 amount);
 
-  constructor(address payable _wallet, IERC20 _token) public {
+  constructor(IERC20 _token) public {
     require(_wallet != address(0));
 
     token = _token;
-    wallet = _wallet;
+    wallet = msg.sender;
   }
 
   // fallback function can be used to buy tokens
@@ -75,6 +75,14 @@ contract CRDCrowdsale is Ownable {
     token.transfer(msg.sender, tokens);
 
     wallet.transfer(msg.value);
+  }
+  
+  function setRate(uint256 _rate) public onlyOwner {
+    rate = _rate;
+  }
+  
+  function setWallet(address payable _wallet) public onlyOwner {
+    wallet = _wallet;
   }
   
   function close() public onlyOwner {

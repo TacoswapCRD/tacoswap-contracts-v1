@@ -29,7 +29,7 @@ interface IMigratorChef {
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable {
+contract TacoChef is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -67,7 +67,7 @@ contract MasterChef is Ownable {
     // TACO tokens created per block.
     uint256 public tacoPerBlock;
     // Bonus muliplier for early taco makers.
-    uint256 public constant BONUS_MULTIPLIER = 10;
+    uint256 public constant BONUS_MULTIPLIER = 4;
     // The migrator contract. It has a lot of power. Can only be set through governance (owner).
     IMigratorChef public migrator;
 
