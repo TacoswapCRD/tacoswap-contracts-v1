@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.7.0;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.7.5;
 
 import "./tacoswap/interfaces/ITacoSwapPair.sol";
 import "./tacoswap/interfaces/ITacoSwapFactory.sol";
@@ -16,7 +16,7 @@ contract Migrator {
         address _oldFactory,
         ITacoSwapFactory _factory,
         uint256 _notBeforeBlock
-    ) public {
+    ) {
         chef = _chef;
         oldFactory = _oldFactory;
         factory = _factory;
